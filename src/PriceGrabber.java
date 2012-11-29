@@ -1,5 +1,7 @@
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import org.jsoup.Jsoup;
@@ -27,7 +29,7 @@ public class PriceGrabber {
 			// Build URL based on specifications given by user
 			String query = "";
 			try {
-				query = URLEncoder.encode(brand + size + " inch " + clearity + " tv", "UTF-8");
+				query = URLEncoder.encode(brand + " " + size + " inch " + clearity + " tv", "UTF-8");
 			} catch (UnsupportedEncodingException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -37,19 +39,26 @@ public class PriceGrabber {
 			String amazonUrl = "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" + query;
 			System.out.println(amazonUrl);
 			String response = getWebPage(amazonUrl);
-			//System.out.println(response);
-			
-			// Parse html and find first amazon result
+			List<AmazonResult> results = new ArrayList<AmazonResult>();
 			Document doc = Jsoup.parse(response);
-			Element e = doc.getElementById("result_0");
-			String nodeValue = e.html();
-			System.out.println(nodeValue);
-			
-			AmazonResult result = new AmazonResult(e);
-			result.printBasicInfo();
-			
-			// Get basic info from result
-			//e.getElementById();
+			int elementNumber = 0;
+			while(true){
+				Element result = doc.getElementById("result_" + elementNumber);
+				// If no result is found then you have reached the last result on this page
+				if(result == null)
+					break;
+				
+				// This string contains all of the text describing a given result
+				String nodeValue = result.html();
+				// Parse html and find first amazon result
+				//System.out.println(nodeValue);
+				
+				AmazonResult amazonResult = new AmazonResult(result);
+				amazonResult.printBasicInfo();
+				System.out.println();
+				results.add(amazonResult);
+				elementNumber++;
+			}
 		}
 	}
 	
